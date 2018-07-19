@@ -4,9 +4,8 @@ import pandas as pd
 from itertools import product
 from warnings import warn
 
+import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-from matplotlib.ticker import MultipleLocator
 
 from scipy.spatial.distance import euclidean
 
@@ -106,6 +105,9 @@ class Prickle(object):
         Args:
             **kwds: Keyword arguments passed to
                 `matplotlib.collections.LineCollection`.
+                `label` is an additional keyword argument. If it is a `str`
+                then proxy artists are appended to a list, self.handles, with
+                label=label. Draw the legend using: ax.legend(handles=handles).
 
         Returns:
             `matplotlib.axes.Axes`
@@ -116,8 +118,33 @@ class Prickle(object):
         ax = plt.gca()
         linewidths = kwds.pop('linewidths', 1)
         colors = kwds.pop('colors', 'black')
-        lc = LineCollection(
-            segments=self.segments, linewidths=linewidths, colors=colors, **kwds)
+        label = kwds.pop('label', None)
+
+        if label:
+            lw_is_scalar = isinstance(linewidths, (int, float))
+            colors_is_str = isinstance(colors, str)
+            if not lw_is_scalar or not colors_is_str:
+                raise NotImplementedError(
+                    "Cannot set label when multiple colors and/or linewidths "
+                    "are used.")
+
+            if not hasattr(self, 'handles'):
+                self.handles = list()
+
+            self.handles.append(
+                matplotlib.lines.Line2D(
+                    xdata=[],
+                    ydata=[],
+                    color=colors,
+                    linewidth=linewidths,
+                    label=label))
+
+        lc = matplotlib.collections.LineCollection(
+            segments=self.segments,
+            linewidths=linewidths,
+            colors=colors,
+            **kwds)
+
         ax.add_artist(lc)
         return ax
 
