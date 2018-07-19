@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.ticker import MultipleLocator
 
+from scipy.spatial.distance import euclidean
+
 class Prickle(object):
     """
     Args:
@@ -31,7 +33,7 @@ class Prickle(object):
             have `m` > 0.
 
         Args:
-            **kwds (Keyword arguments): Passed to ax.scatter().
+            **kwds: Keyword arguments passed to ax.scatter().
 
         Returns:
             `matplotlib.axes.Axes`
@@ -43,18 +45,21 @@ class Prickle(object):
         ax.scatter(dots[:, 1], dots[:, 0], s=s, c=c, **kwds)
         return ax
 
-    def plot_prickles(self, **kwds):
-        """Plot prickles.
+    def _make_segments(self):
+        """Segments are the prickle lines in the plot.
 
-        Args:
-            **kwds (Keyword arguments): Passed to
-                `matplotlib.collections.LineCollection`.
+        Segments are defined by their start and end coordinates. Segments are
+        attached as an attribute on self.
 
-        Returns:
-            `matplotlib.axes.Axes`
+        Attributes:
+            segments (`list`): Each element is an np.array, shape (2, 2):
+                np.array([
+                    [x0, y0],
+                    [x1, y1]
+                ])
         """
-        segments = []
-        append = segments.append
+        self.segments = []
+        append = self.segments.append
 
         for i, j in self.ij:
             element = self.samples.iloc[i, j]
@@ -68,27 +73,71 @@ class Prickle(object):
                 for vector in vectors:
                     x1 = x0 + vector[0]
                     y1 = y0 + vector[1]
-                    append([[x0, y0], [x1, y1]])
+                    append(np.array([[x0, y0], [x1, y1]]))
 
             elif pd.notnull(element):
-                warn("Odd element in df at samples.loc[{}, {}] "
+                warn("Unhandled element at samples.loc[{}, {}] "
                      "It is not null, and it could not be plotted".format(i, j))
+
+    def _segment_lengths(self):
+        """Compute the lengths of all segments.
+
+        Returns:
+            np.array: Shape (len(self.segments),). The lengths of all segments.
+        """
+        if not hasattr(self, 'segments'):
+            self._make_segments()
+
+        return np.array(
+            [euclidean(self.segments[i][0], self.segments[i][1])
+             for i in range(len(self.segments))])
+
+    def hist(self, **kwds):
+        """Plot a histogram of the lengths of each prickle line.
+
+        Arguments:
+            kwds: Keyword arguments passed to plt.hist().
+        """
+        plt.hist(self._segment_lengths(), **kwds)
+
+    def plot_prickles(self, **kwds):
+        """Plot prickles.
+
+        Args:
+            **kwds (Keyword arguments): Passed to
+                `matplotlib.collections.LineCollection`.
+
+        Returns:
+            `matplotlib.axes.Axes`
+        """
+        if not hasattr(self, 'segments'):
+            self._make_segments()
 
         ax = plt.gca()
         linewidths = kwds.pop('linewidths', 1)
         colors = kwds.pop('colors', 'black')
         lc = LineCollection(
-            segments=segments, linewidths=linewidths, colors=colors, **kwds)
+            segments=self.segments, linewidths=linewidths, colors=colors, **kwds)
         ax.add_artist(lc)
         return ax
 
-    def plot(self, pad=1, dot_kwds={}, prickle_kwds={}):
+    def plot(self, pad=1, dot_kwds={}, prickle_kwds={}, hist=False,
+             hist_kwds={}):
         """Draw the prickle plot.
 
         Args:
-            pad (Scalar): Ax padding.
-            dot_kwds (Dict): Keyword to pass to Prickle.plot_dots()
-            prickle_kwds (Dict): Keyword to pass to Prickle.plot_prickles()
+            pad (`number`): Ax padding.
+            dot_kwds (`dict`): Keywords to pass to Prickle.plot_dots()
+            prickle_kwds (`dict`): Keywords to pass to Prickle.plot_prickles()
+            hist (`bool`): Show a histogram.
+            hist_kwds (`dict`): If not an empty dict, show a histogram of the
+                prickle line lengths. Keywords in hist_kwds are passed to
+                Prickle.histogram(). Additional keywords includes `rect` which
+                sets the rectangle of the inset axes. See
+                pyplot.figure.add_axes()
+
+        Returns:
+            `matplotlib.axes.Axes`
         """
         self.plot_dots(**dot_kwds)
         self.plot_prickles(**prickle_kwds)
