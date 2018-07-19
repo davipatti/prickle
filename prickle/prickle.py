@@ -113,11 +113,13 @@ class Prickle(object):
         if not hasattr(self, 'segments'):
             self._make_segments()
 
-        ax = plt.gca()
-        linewidths = kwds.pop('linewidths', 1)
-        colors = kwds.pop('colors', 'black')
         lc = LineCollection(
-            segments=self.segments, linewidths=linewidths, colors=colors, **kwds)
+            segments=self.segments,
+            linewidths=kwds.pop('linewidths', 1),
+            colors=kwds.pop('colors', 'black'),
+            **kwds)
+
+        ax = plt.gca()
         ax.add_artist(lc)
         return ax
 
@@ -134,6 +136,7 @@ class Prickle(object):
         """
         self.plot_dots(**dot_kwds)
         self.plot_prickles(**prickle_kwds)
+
         ax = plt.gca()
         ax.set_xticks(self.cols)
         ax.set_yticks(self.rows)
