@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from scipy.spatial.distance import euclidean
 
+
 class Prickle(object):
     """
     Args:
@@ -75,14 +76,17 @@ class Prickle(object):
                     append(np.array([[x0, y0], [x1, y1]]))
 
             elif pd.notnull(element):
-                warn("Unhandled element at samples.loc[{}, {}] "
-                     "It is not null, and it could not be plotted".format(i, j))
+                warn(
+                    "Unhandled element at samples.loc[{}, {}] "
+                    "It is not null, and it could not be plotted".format(i, j)
+                )
 
     def _segment_lengths(self):
         """Compute the lengths of all segments.
 
         Returns:
-            np.array: Shape (len(self.segments), ). The lengths of all segments.
+            np.array: Shape (len(self.segments), ). The lengths of all
+                segments.
         """
         if not hasattr(self, 'segments'):
             self._make_segments()
