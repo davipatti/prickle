@@ -30,7 +30,7 @@ class Prickle(object):
 
     def plot_dots(self, **kwds):
         """Plot dots showing zero values for all elements in `samples` that
-            have `m` > 0.
+        have `m` > 0.
 
         Args:
             **kwds: Keyword arguments passed to ax.scatter().
