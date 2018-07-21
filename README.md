@@ -2,9 +2,14 @@
 Draw prickle plots
 
 ## Install
-It can be installed from command-line using [pip](https://pypi.python.org/pypi/pip):
+
+Make a new virtual environment with python 3, then:
+
 ```bash
-pip install prickle
+git clone git@github.com:davipatti/prickle.git
+pip install matplotlib scipy pandas numpy
+pip install -e ./prickle
 ```
+
 ## License
 This project is licensed under the MIT license.
