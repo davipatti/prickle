@@ -6,9 +6,7 @@ Draw prickle plots
 Make a new virtual environment with python 3, then:
 
 ```bash
-git clone git@github.com:davipatti/prickle.git
-pip install matplotlib scipy pandas numpy
-pip install -e ./prickle
+pip install git+https://github.com/davipatti/prickle.git
 ```
 
 ## License
