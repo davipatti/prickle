@@ -64,22 +64,12 @@ class Prickle(object):
         for i, j in self.ij:
             element = self.samples.iloc[i, j]
 
-            # Check element is array / list / tuple
-            if hasattr(element, "__len__"):
-
-                vectors = np.array(element) - self.zero.values
+            if hasattr(element, "shape"):
+                vector = element - self.zero
                 x0, y0 = j, i
-
-                for vector in vectors:
-                    x1 = x0 + vector[0]
-                    y1 = y0 + vector[1]
-                    append(np.array([[x0, y0], [x1, y1]]))
-
-            elif pd.notnull(element):
-                warn(
-                    "Unhandled element at samples.loc[{}, {}] "
-                    "It is not null, and it could not be plotted".format(i, j)
-                )
+                x1 = x0 + vector[0]
+                y1 = y0 + vector[1]
+                append(np.array([[x0, y0], [x1, y1]]))
 
     def _segment_lengths(self):
         """Compute the lengths of all segments.
@@ -147,6 +137,7 @@ class Prickle(object):
             segments=self.segments,
             linewidths=linewidths,
             colors=colors,
+            clip_on=False,
             **kwds)
 
         ax.add_artist(lc)
